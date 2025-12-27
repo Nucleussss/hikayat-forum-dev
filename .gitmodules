@@ -1,0 +1,9 @@
+[submodule "hikayat-forum-auth-service"]
+	path = hikayat-forum-auth-service
+	url = https://github.com/Nucleussss/hikayat-forum-auth-service.git
+[submodule "hikayat-forum-post-service"]
+	path = hikayat-forum-post-service
+	url = https://github.com/Nucleussss/hikayat-forum-post-service.git
+[submodule "hikayat-forum-gateway"]
+	path = hikayat-forum-gateway
+	url = https://github.com/Nucleussss/hikayat-forum-gateway.git

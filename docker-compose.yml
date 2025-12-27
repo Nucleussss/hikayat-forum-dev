@@ -1,0 +1,164 @@
+
+services:
+  # ================================
+  # AUTH SERVICE (User Management)
+  # ================================
+  auth-service:
+    build:
+      context: ./hikayat-forum-auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "50051:50051"
+    networks:
+      - hikayat-network
+    environment:
+      - AUTH_GRPC_PORT=${AUTH_GRPC_PORT}
+      - DB_NAME=${AUTH_DB_NAME}
+      - DB_HOST=postgres
+      - DB_USER=${DB_USER}
+      - DB_PORT=${DB_PORT}
+      - DB_PASSWORD=${DB_PASSWORD}     
+      - DB_SSL_MODE=${DB_SSL_MODE}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRED=${JWT_EXPIRED}
+    depends_on:
+      auth-migration:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+
+  auth-migration:
+    build:
+      context: ./hikayat-forum-auth-service
+      dockerfile: Dockerfile.migration
+    environment:
+      - DB_HOST=postgres
+      - DB_NAME=${AUTH_DB_NAME}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_SSL_MODE=${DB_SSL_MODE}
+    entrypoint: ["/bin/sh"]
+    command: >
+      -c "
+      echo 'Waiting for PostgreSQL...' &&
+      until pg_isready -h $$DB_HOST -p $$DB_PORT -U $$DB_USER -d $$DB_NAME;
+      do sleep 2; done &&
+      echo 'PostgreSQL is ready. Running migrations...' &&
+      migrate -path /migrations -database "postgresql://$$DB_USER:$$DB_PASSWORD@$$DB_HOST:$$DB_PORT/$$DB_NAME?sslmode=$$DB_SSL_MODE" up
+      "  
+    networks:
+      - hikayat-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+  # ================================
+  # POST SERVICE (Forum Posts)
+  # ================================
+  post-service:
+    build:
+      context: ./hikayat-forum-post-service
+      dockerfile: Dockerfile
+    ports:
+      - "50052:50052"
+    environment:
+      - POST_GRPC_PORT=${POST_GRPC_PORT}
+      - DB_HOST=postgres
+      - DB_NAME=${POST_DB_NAME}
+      - DB_PORT=${DB_PORT}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_USER=${DB_USER}
+      - DB_SSL_MODE=${DB_SSL_MODE}
+
+    networks:
+      - hikayat-network
+    depends_on:
+      post-migration:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+
+  post-migration:
+    image: ghcr.io/kukymbr/goose-docker:3.24.2
+    environment:
+      - GOOSE_DRIVER=postgres
+      - GOOSE_DBSTRING=host=postgres port=5432 user=${DB_USER} password=${DB_PASSWORD} dbname=${POST_DB_NAME} sslmode=${DB_SSL_MODE}
+      - GOOSE_VERBOSE=true
+    networks:
+      - hikayat-network
+    depends_on:
+      postgres:
+       condition: service_healthy
+    restart: on-failure
+    volumes:
+      - ./hikayat-forum-post-service/db/migrations:/migrations
+
+  # ================================
+  # SHARED POSTGRESQL DATABASE
+  # ================================
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - hikayat-network
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      #copy initdb scripts to the container
+      - ./initdb:/docker-entrypoint-initdb.d
+
+  # ================================
+  # FORUM GATEWAY (REST API)
+  # ================================
+  forum-gateway:
+    build:
+      context: ./hikayat-forum-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - AUTH_SERVICE_ADDR=${AUTH_SERVICE_ADDR}
+      - POST_SERVICE_ADDR=${POST_SERVICE_ADDR}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRED=${JWT_EXPIRED}
+    networks:
+      - hikayat-network
+    depends_on:
+      auth-service:
+        condition: service_started
+      post-service:
+        condition: service_started
+
+  # ================================
+  # PGADMIN (Optional)
+  # ================================
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5050:80"
+    networks:
+      - hikayat-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+# ================================
+# NETWORK & VOLUMES
+# ================================
+networks:
+  hikayat-network:
+    driver: bridge
+
+volumes:
+  postgres-data:

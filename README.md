@@ -48,62 +48,6 @@
 
 ---
 
-## 🚀 Quick Start
-
-### Prerequisites
-- Docker & Docker Compose
-- Node.js ≥ 18
-- Go ≥ 1.21 (if building backend from source)
-
-### 1. Clone the Project
-```bash
-git clone https://github.com/your-username/hikayat-forum.git
-cd hikayat-forum
-```
-
-### 2. Start Backend Services
-```bash
-# Build and run all microservices + gateway + DB
-docker-compose up --build
-```
-> Services will be available at:
-> - Gateway: `http://localhost:8080`
-> - Auth gRPC: `localhost:50051`
-> - Post gRPC: `localhost:50052`
-
-### 3. Launch Frontend
-```bash
-cd hikayat-forum-frontend
-npm install
-npm run dev
-```
-> Visit: [http://localhost:3000](http://localhost:3000)
-
----
-
-## 📂 Project Structure
-
-```
-hikayat-forum/
-├── docker-compose.yml          # Orchestrates all services
-├── forum-protos/               # Shared .proto contracts
-├── hikayat-forum-auth-service/ # Go: user auth (gRPC)
-├── hikayat-forum-post-service/ # Go: post management (gRPC)
-├── hikayat-forum-gateway/      # Go: REST gateway (port 8080)
-├── hikayat-forum-frontend/     # Next.js + React + Tailwind
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── register/page.tsx
-│   │   │   ├── login/page.tsx
-│   │   │   └── api/auth/.../route.ts  # Secure API proxies
-│   │   └── ...
-│   └── ...
-├── initdb/                     # Database initialization scripts
-└── scripts/                    # Dev utility scripts
-```
-
----
-
 ## 🔐 Authentication Flow
 
 1. User registers via `/register` → frontend calls `/api/auth/register`
@@ -157,6 +101,6 @@ This project is licensed under the **MIT License** – see the [LICENSE](LICENSE
 ## 💬 Support
 
 Built with ❤️ for developers exploring microservices and modern full-stack patterns.  
-Have questions or feedback? Open an [issue](https://github.com/Nucleussss/hikayat-forum/issues)!
+Have questions or feedback? Open an [issue](https://github.com/Nucleussss/hikayat-forum-dev/issues)!
 
 ---

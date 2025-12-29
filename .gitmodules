@@ -7,3 +7,6 @@
 [submodule "hikayat-forum-gateway"]
 	path = hikayat-forum-gateway
 	url = https://github.com/Nucleussss/hikayat-forum-gateway.git
+[submodule "hikayat-forum-frontend"]
+	path = hikayat-forum-frontend
+	url = https://github.com/Nucleussss/hikayat-forum-frontend

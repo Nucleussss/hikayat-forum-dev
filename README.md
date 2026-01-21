@@ -1,4 +1,4 @@
-# 📜 Hikayat Forum – A Modern Microservices-Powered Community Forum
+# Hikayat Forum – Microservices-Powered Community Forum
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 

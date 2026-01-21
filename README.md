@@ -25,39 +25,6 @@
 
 ---
 
-## 🏗️ Architecture Overview
-
-```
-┌──────────────────┐
-│   Frontend       │  ← Next.js + React + Tailwind
-│ (localhost:3000) │
-└─────────┬────────┘
-          │ REST (HTTP/JSON)
-┌─────────▼────────┐
-│   Forum Gateway  │  ← Go service (port 8080)
-│  (public entry)  │
-└─────────┬────────┘
-          │ gRPC
-┌─────────▼────────┐     ┌──────────────────┐
-│  Auth Service    │     │   Post Service   │
-│ (gRPC: 50051)    │     │ (gRPC: 50052)    │
-└──────────────────┘     └──────────────────┘
-```
-
-> All services are containerized and managed via `docker-compose.yml`.
-
----
-
-## 🔐 Authentication Flow
-
-1. User registers via `/register` → frontend calls `/api/auth/register`
-2. Next.js API route proxies to `forum-gateway`
-3. Gateway validates → calls `auth-service` via gRPC
-4. On success: returns JWT (stored securely via HTTP-only cookies or localStorage)
-5. Subsequent requests include JWT → Gateway validates → routes to services
-
----
-
 ## 🛠️ Tech Stack
 
 | Layer           | Technology                     |
@@ -68,28 +35,3 @@
 | **Infra**       | Docker, Docker Compose        |
 | **Database**    | PostgreSQL (configurable)     |
 
----
-
-## 📈 Roadmap (Planned)
-
-- [ ] Comment service (gRPC)
-- [ ] Notification service (email + in-app)
-- [ ] User profiles & avatars
-- [ ] Post voting & threading
-- [ ] Production deployment guide (Nginx, TLS, env secrets)
-- [ ] OpenAPI spec for gateway
-
----
-
-## 📄 License
-
-This project is licensed under the **MIT License** – see the [LICENSE](LICENSE) file for details.
-
----
-
-## 💬 Support
-
-Built with ❤️ for developers exploring microservices and modern full-stack patterns.  
-Have questions or feedback? Open an [issue](https://github.com/Nucleussss/hikayat-forum-dev/issues)!
-
----
